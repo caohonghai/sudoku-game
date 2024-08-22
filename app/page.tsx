@@ -182,7 +182,7 @@ export default function Component() {
       <h1 className="text-3xl font-bold mb-4">
         Sudoku Game
       </h1>
-      <div className="mb-4 flex items-center space-x-2">
+      <div className="mb-4 flex items-center space-x-2 flex-col md:flex-row gap-4">
         <Select
           value={difficulty}
           onValueChange={(val) =>
@@ -202,15 +202,17 @@ export default function Component() {
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={newGame}>
-          New Game
-        </Button>
-        <Button onClick={clearCell}>
-          Clear Cell
-        </Button>
-        <Button onClick={clearAll}>
-          Restart
-        </Button>
+        <div className="flex gap-4">
+          <Button onClick={newGame}>
+            New Game
+          </Button>
+          <Button onClick={clearCell}>
+            Clear Cell
+          </Button>
+          <Button onClick={clearAll}>
+            Restart
+          </Button>
+        </div>
       </div>
       {isCorrect !== null && (
         <div
@@ -241,7 +243,7 @@ export default function Component() {
           row.map((cell, colIndex) => (
             <div
               key={`${rowIndex}-${colIndex}`}
-              className={`w-10 h-10 text-center text-2xl flex items-center justify-center bg-white ${
+              className={`w-8 h-8 md:w-10 md:h-10 text-center text-2xl flex items-center justify-center bg-white ${
                 isActive(rowIndex, colIndex)
                   ? "cursor-pointer !bg-blue-200"
                   : ""
@@ -280,12 +282,12 @@ export default function Component() {
           selectButton.has(i) ? (
             <div
               key={i}
-              className="w-10 h-10"
+              className="w-8 h-8 md:w-10 md:h-10 "
             ></div>
           ) : (
             <div
               key={i}
-              className="w-10 h-10 text-center flex items-center justify-center bg-blue-200 cursor-pointer text-2xl text-zinc-600"
+              className="w-8 h-8 md:w-10 md:h-10 text-center flex items-center justify-center bg-blue-200 cursor-pointer text-2xl text-zinc-600"
               onClick={() => {
                 setUserCellInput(i);
               }}
