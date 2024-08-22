@@ -185,7 +185,9 @@ export default function Component() {
       <div className="mb-4 flex items-center space-x-2">
         <Select
           value={difficulty}
-          onValueChange={setDifficulty}
+          onValueChange={(val) =>
+            setDifficulty(val as Difficulty)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select" />
@@ -253,6 +255,7 @@ export default function Component() {
                   ? "text-blue-500"
                   : ""
               } ${
+                position.row !== -1 &&
                 userInput[rowIndex][colIndex] ===
                   userInput[position.row][
                     position.col
