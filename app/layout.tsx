@@ -22,8 +22,18 @@ export default function RootLayout({
         <footer className="text-sm bg-white text-center text-gray-400 py-4">
           <p>
             &copy; {new Date().getFullYear()}{" "}
-            <a href="https://antcao.me" className="underline">
+            <a
+              href="https://antcao.me"
+              className="underline"
+            >
               Ant Cao
+            </a>{" "}
+            |{" "}
+            <a
+              href="https://github.com/caohonghai/sudoku-game"
+              className="underline"
+            >
+              GitHub
             </a>
             . All rights reserved.
           </p>

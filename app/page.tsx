@@ -17,6 +17,11 @@ import {
 
 import { generateSudokuBoard } from "@/lib/sudo";
 
+import { Outfit } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const outfit = Outfit({ subsets: ["latin"] });
+
 // 难度级别定义
 const DIFFICULTY_LEVELS: {
   [key in Difficulty]: {
@@ -179,7 +184,12 @@ export default function Component() {
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-background text-foreground">
-      <h1 className="text-3xl font-bold mb-4">
+      <h1
+        className={cn(
+          "text-3xl font-bold mb-4",
+          outfit.className
+        )}
+      >
         Sudoku Game
       </h1>
       <div className="mb-4 flex items-center space-x-2 flex-col md:flex-row gap-4">
