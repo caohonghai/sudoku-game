@@ -2,32 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+.sudoku-cell {
+    border: 1px solid #ccc;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+.sudoku-cell:nth-child(3n) {
+    border-right: 2px solid #000;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.sudoku-cell:nth-child(n+7) {
+    border-bottom: 2px solid #000;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.sudoku-cell:nth-child(9n+1) {
+    border-left: 2px solid #000;
+}
+
+.sudoku-cell:nth-child(-n+9) {
+    border-top: 2px solid #000;
 }

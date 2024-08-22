@@ -1,113 +1,297 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  SudokuBoard,
+  Difficulty,
+} from "@/types/sudo";
+
+import { generateSudokuBoard } from "@/lib/sudo";
+
+// 难度级别定义
+const DIFFICULTY_LEVELS: {
+  [key in Difficulty]: {
+    name: string;
+    emptyCount: number;
+  };
+} = {
+  easy: { name: "Easy", emptyCount: 30 },
+  medium: { name: "Medium", emptyCount: 40 },
+  hard: { name: "Hard", emptyCount: 50 },
+  expert: { name: "Expert", emptyCount: 60 },
+};
+
+const DISABLE_BUTTON = false;
+
+function generatePuzzle(
+  board: SudokuBoard,
+  difficulty: Difficulty
+): SudokuBoard {
+  const boardCopy = board.map((row) => [...row]);
+  const emptyCount =
+    DIFFICULTY_LEVELS[difficulty].emptyCount;
+  let count = 0;
+  while (count < emptyCount) {
+    const row = Math.floor(Math.random() * 9);
+    const col = Math.floor(Math.random() * 9);
+    if (boardCopy[row][col] !== 0) {
+      boardCopy[row][col] = 0;
+      count++;
+    }
+  }
+  return boardCopy;
+}
+
+export default function Component() {
+  const [solution, setSolution] =
+    useState<SudokuBoard>([]);
+  const [puzzle, setPuzzle] =
+    useState<SudokuBoard>([]);
+  const [userInput, setUserInput] =
+    useState<SudokuBoard>([]);
+  const [difficulty, setDifficulty] =
+    useState<Difficulty>("medium");
+  const [isCorrect, setIsCorrect] = useState<
+    null | boolean
+  >(null);
+  const [position, setPosition] = useState<{
+    row: number;
+    col: number;
+  }>({ row: -1, col: -1 });
+  const [selectButton, setSelectButton] =
+    useState<Set<number>>(new Set());
+  const [timer, setTimer] = useState<number>(0);
+
+  function isActive(row: number, col: number) {
+    return (
+      position.row === row ||
+      position.col === col ||
+      (Math.floor(position.col / 3) ===
+        Math.floor(col / 3) &&
+        Math.floor(position.row / 3) ===
+          Math.floor(row / 3))
+    );
+  }
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!isCorrect)
+        setTimer((prevTime) => prevTime + 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isCorrect]);
+
+  useEffect(() => {
+    newGame();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [difficulty]);
+
+  function newGame() {
+    const board = generateSudokuBoard();
+    setSolution(board);
+    setPosition({ row: -1, col: -1 });
+    const newPuzzle = generatePuzzle(
+      board,
+      difficulty
+    );
+    setPuzzle(newPuzzle);
+    setUserInput(
+      newPuzzle.map((row) => [...row])
+    );
+    setIsCorrect(null);
+    setSelectButton(new Set());
+    setTimer(0);
+  }
+
+  function clearCell() {
+    if (position.row === -1) return;
+    setUserInput((prevInput) => {
+      const newInput = [...prevInput];
+      newInput[position.row][position.col] = 0;
+      return newInput;
+    });
+  }
+
+  function clearAll() {
+    setUserInput(() => {
+      return puzzle.map((row) => [...row]);
+    });
+    setPosition({ row: -1, col: -1 });
+    setSelectButton(new Set());
+    setTimer(0);
+  }
+
+  function activeCell(row: number, col: number) {
+    setPosition({ row, col });
+    const st = new Set<number>();
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (
+          i === row ||
+          j === col ||
+          (Math.floor(col / 3) ===
+            Math.floor(j / 3) &&
+            Math.floor(row / 3) ===
+              Math.floor(i / 3))
+        ) {
+          st.add(userInput[i][j]);
+        }
+      }
+    }
+    setSelectButton(st);
+  }
+
+  function setUserCellInput(i: number) {
+    const { row, col } = position;
+    setUserInput((prevInput) => {
+      const newInput = [...prevInput];
+      newInput[row][col] = i;
+      return newInput;
+    });
+    // count unselect
+    let cnt = 0;
+    userInput.map((row) => {
+      row.map((cell, colIndex) => {
+        if (cell === 0) {
+          cnt++;
+        }
+      });
+    });
+    if (cnt !== 0) return;
+    // check solution
+    const check =
+      JSON.stringify(userInput) ===
+      JSON.stringify(solution);
+    setIsCorrect(check);
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="flex flex-col items-center justify-center p-4 bg-background text-foreground">
+      <h1 className="text-3xl font-bold mb-4">
+        Sudoku Game
+      </h1>
+      <div className="mb-4 flex items-center space-x-2">
+        <Select
+          value={difficulty}
+          onValueChange={setDifficulty}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(
+              DIFFICULTY_LEVELS
+            ).map(([key, { name }]) => (
+              <SelectItem key={key} value={key}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button onClick={newGame}>
+          New Game
+        </Button>
+        <Button onClick={clearCell}>
+          Clear Cell
+        </Button>
+        <Button onClick={clearAll}>
+          Restart
+        </Button>
+      </div>
+      {isCorrect !== null && (
+        <div
+          className={`mb-4 flex items-center ${
+            isCorrect
+              ? "text-green-500"
+              : "text-red-500"
+          }`}
+        >
+          {isCorrect ? (
+            <>
+              <span>恭喜！解答正确！</span>
+            </>
+          ) : (
+            <>
+              <span>
+                解答不正确，请继续尝试。
+              </span>
+            </>
+          )}
         </div>
+      )}
+      <p className="text-lg mb-4">
+        {Math.floor(timer / 60)}:{timer % 60}
+      </p>
+      <div className="grid grid-cols-9 gap-0.5 bg-zinc-400 p-0.5 rounded">
+        {userInput.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              className={`w-10 h-10 text-center text-2xl flex items-center justify-center bg-white ${
+                isActive(rowIndex, colIndex)
+                  ? "cursor-pointer !bg-blue-200"
+                  : ""
+              } ${
+                rowIndex === position.row &&
+                colIndex === position.col
+                  ? "!bg-blue-300"
+                  : ""
+              } ${
+                puzzle[rowIndex][colIndex] === 0
+                  ? "text-blue-500"
+                  : ""
+              } ${
+                userInput[rowIndex][colIndex] ===
+                  userInput[position.row][
+                    position.col
+                  ] &&
+                userInput[rowIndex][colIndex] !==
+                  0
+                  ? "!bg-blue-300"
+                  : ""
+              }`}
+              onClick={() => {
+                activeCell(rowIndex, colIndex);
+              }}
+            >
+              {cell === 0 ? "" : cell}
+            </div>
+          ))
+        )}
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="grid grid-cols-9 mt-8 gap-0.5 p-0.5 rounded">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) =>
+          DISABLE_BUTTON &&
+          selectButton.has(i) ? (
+            <div
+              key={i}
+              className="w-10 h-10"
+            ></div>
+          ) : (
+            <div
+              key={i}
+              className="w-10 h-10 text-center flex items-center justify-center bg-blue-200 cursor-pointer text-2xl text-zinc-600"
+              onClick={() => {
+                setUserCellInput(i);
+              }}
+            >
+              {i}
+            </div>
+          )
+        )}
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
